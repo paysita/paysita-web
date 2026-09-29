@@ -9,10 +9,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-pndy9=cjc0l4m336&gb#xxrurfum!$g9=s)p0j#zv043f%+++%'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-pndy9=cjc0l4m336&gb#xxrurfum!$g9=s)p0j#zv043f%+++%')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Off on Heroku (DYNO is set there) unless DJANGO_DEBUG=True; on locally.
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False' if 'DYNO' in os.environ else 'True') == 'True'
 
 ALLOWED_HOSTS = [
     '*',
@@ -34,6 +35,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -116,10 +118,15 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 STATICFILES_DIRS = [
-    BASE_DIR,"static"
+    BASE_DIR / "static",
 ]
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+STORAGES = {
+    'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+    'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage'},
+}
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
